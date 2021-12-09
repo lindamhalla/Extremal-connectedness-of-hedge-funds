@@ -32,5 +32,5 @@ Then, (bivariate) vectors of transformed returns are built for each pair of inve
 
 In the Rdata file 'df.multivariate.Rdata', we provide the negative returns transformed to the unit Frechet scale (for anonymity reasons), as well as the set of covariates used to model the dynamic tail connectedness measures, i.e., the VIX (retrieved from the Federal Reserve of Economic Data), the negative returns of the MSCI (retrieved from the MSCI World page), the EPU (retrieved from the Federal Reserve of Economic Data), and the FSI (retrieved from the Federal Reserve of Economic Data).
 
-The R script used to estimate the extremal connectedness between investment styles of hedge funds can be found in the file 'modeling_extremal_connectedness_funds.R'. This R script allows also the computations of the ECoVaR for all pairs of strategies.
+The R script used to estimate the extremal connectedness between investment styles of hedge funds (see Section 3.3 of the paper) can be found in the file 'modeling_extremal_connectedness_funds.R'. This R script allows also the computations of the ECoVaR for all pairs of strategies (see Section 3.4 of the paper).
 The functions needed to fit the Husler--Reiss spectral density can be found in 'spectral_HR.R'.
