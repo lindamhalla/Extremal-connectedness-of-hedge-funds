@@ -133,7 +133,7 @@ coef.ext.hr.1 <- coef.ext.hr.1[!sapply(coef.ext.hr.1, is.null)]
 tail.coef.pairs <- list()
 
 tail.coef.pairs$strategy  <- unique.substrat
-tail.coef.pairs$pairs     <- pairs.finished[,id.pairs.finished]
+tail.coef.pairs$pairs     <- nb.pairs[,-index.fund.of.funds]
 tail.coef.pairs$tail.coef <- list()
 
 for(k in 1:length(coef.ext.hr.1)){
@@ -150,8 +150,9 @@ library(igraph)
 library(RColorBrewer)
 library(fields)
 
+substrat.finished <- 1:13
 w <- as.vector(unlist(lapply(tail.coef.pairs$tail.coef, function(x) mean(x[,2]))))
-w[(w_1<quantile(w,.5))] <- NA
+w[(w<quantile(w,.5))] <- NA
 
 vec.col <- colorRampPalette(brewer.pal(11,"Spectral"))(length(w[!is.na(w)]))[rank(w, na.last = NA)]
 
@@ -174,3 +175,55 @@ image.plot(legend.only=T, zlim=range(w,na.rm=TRUE),
            horizontal = TRUE, 
            legend.lab=expression(paste("E{", chi, "(", bold(x)[t], ") | ", t%in% tilde(T), "=[1994-01-10,2017-05-31]}")),
            legend.line = 2.3)
+
+##############################################################################
+############### compute the ECoVaR for all pairs
+##############################################################################
+estimate.C.EV <- function(u,v,lambda){ #A is the function returning the Pickands dependence function
+  u1   <- log(u)
+  u2   <- log(v)
+  w    <- u1/(u1+u2)
+  A.HR <- function(w, lambda){
+    (1-w)*pnorm(lambda+(log((1-w)/w)/(2*lambda))) + 
+      w*pnorm(lambda+(log(w/(1-w))/(2*lambda)))
+  }
+  return(exp((u1+u2)*A.HR(w, 1/lambda)))
+}
+
+fct.uniroot <- function(x,alpha, beta, lambda){
+  1-beta-x+ estimate.C.EV(beta,x, lambda) - (1-alpha)*(1-beta)
+}
+
+####
+ecovar_mat <- matrix(NA, ncol=length(tail.coef.pairs$tail.coef), nrow=nrow(tail.coef.pairs$tail.coef[[1]]))
+for(k in 1:length(tail.coef.pairs$tail.coef)){
+  time     <- tail.coef.pairs$tail.coef[[k]]$time
+  chi.pair <- tail.coef.pairs$tail.coef[[k]]$ext.coef
+  
+  ### Need to compute the Husler--Reiss parameter from the extremal coefficient
+  lambda.pair <- 1/qnorm(1-(chi.pair/2))
+  
+  ### ECoVaR level
+  alpha=0.975
+  ### VaR level
+  beta=0.975
+  
+  ecovar <- NULL
+  for(i in 1:length(lambda.pair)){
+    u_alpha <- uniroot(fct.uniroot,interval = c(0.1,0.99999),alpha, beta, lambda.pair[i])$root
+    ecovar  <- c(ecovar, u_alpha)
+  }
+  ecovar_mat[,k] <- ecovar
+}
+
+ecovar_list <- list("ecovar"=ecovar_mat,
+                    "time"=tail.coef.pairs$tail.coef[[1]]$time,
+                    "strategy"=tail.coef.pairs$strategy,
+                    "pairs"=tail.coef.pairs$pairs)
+col_names <- NULL
+for(i in 1:ncol(ecovar_list$pairs)){
+  col_names <- c(col_names, paste0(ecovar_list$strategy[ecovar_list$pairs[1,i]],"_vs_",
+                                   ecovar_list$strategy[ecovar_list$pairs[2,i]]))
+}
+colnames(ecovar_mat) <- col_names
+
