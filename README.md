@@ -26,7 +26,7 @@ The code in 'script_marginal_analysis.m' allows estimating an extreme value regr
 Multivariate analysis
 --------------------
 
-After estimating the marginal tail distributions of the different investment styles of thehedge funds, the negative returns are transformed to the unit-Frechet scale using eq. (10), as described at the beginning of Section 3.3 of the paper.
+After estimating the marginal tail distributions of the different investment styles of the hedge funds, the negative returns are transformed to the unit-Frechet scale using eq. (10), as described at the beginning of Section 3.3 of the paper.
 
 Then, (bivariate) vectors of transformed returns are built for each pair of investment styles. Finally, only observations with a radial component exceeding a high threshold are kept for inference, where a Husler--Reiss spectral density is fitted.
 
